@@ -4,8 +4,10 @@ const axios = require("axios");
 const User = require("../models/User");
 const Transaction = require("../models/Transaction");
 const { getMonnifyToken } = require("../utils/monnify");
+const { loginLimiter } = require("../middleware/rateLimit");
 
-// CREATE RESERVED ACCOUNT
+
+// ================= CREATE RESERVED ACCOUNT =================
 router.post("/create-account", async (req, res) => {
   try {
     const { userId, fullname, email } = req.body;
@@ -23,7 +25,11 @@ router.post("/create-account", async (req, res) => {
         customerName: fullname,
         getAllAvailableBanks: true
       },
-      { headers: { Authorization: `Bearer ${token}` } }
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
     );
 
     res.json(response.data);
@@ -33,7 +39,8 @@ router.post("/create-account", async (req, res) => {
   }
 });
 
-// WEBHOOK
+
+// ================= WEBHOOK =================
 router.post("/webhook", async (req, res) => {
   try {
     const data = req.body;
@@ -64,5 +71,42 @@ router.post("/webhook", async (req, res) => {
   }
 });
 
+
+// ================= LOGIN (WITH RATE LIMIT) =================
+router.post("/login", loginLimiter, async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const bcrypt = require("bcryptjs");
+    const jwt = require("jsonwebtoken");
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid password" });
+    }
+
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({
+      success: true,
+      token,
+      user
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
-const { loginLimiter } = require("../middleware/rateLimit");
