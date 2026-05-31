@@ -59,3 +59,6 @@ app.use("/api/vtu", vtuRoutes);
 const withdrawRoutes = require("./routes/withdraw");
 
 app.use("/api/withdraw", withdrawRoutes);
+const plansRoutes = require("./routes/plans");
+
+app.use("/api/plans", plansRoutes);
