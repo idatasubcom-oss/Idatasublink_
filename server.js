@@ -56,3 +56,6 @@ app.listen(PORT, () => {
 const vtuRoutes = require("./routes/vtu");
 
 app.use("/api/vtu", vtuRoutes);
+const withdrawRoutes = require("./routes/withdraw");
+
+app.use("/api/withdraw", withdrawRoutes);
