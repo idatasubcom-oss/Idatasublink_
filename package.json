@@ -1,5 +1,5 @@
 {
-  "name": "idatasub-backend",
+  "name": "idatasublink-backend",
   "version": "1.0.0",
   "description": "IDATASUB Backend API",
   "main": "server.js",
